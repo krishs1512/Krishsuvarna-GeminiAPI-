@@ -29,6 +29,7 @@ public class MainActivity extends AppCompatActivity {
     private EditText promptEditText;
     private TextView responseTextView;
     private ProgressBar progressBar;
+    private TextView userMessageText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,26 +41,31 @@ public class MainActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
         promptEditText = findViewById(R.id.promptEditText);
         ImageButton submitPromptButton = findViewById(R.id.sendButton);
         responseTextView = findViewById(R.id.displayTextView);
         progressBar = findViewById(R.id.progressBar);
+        userMessageText = findViewById(R.id.Message);
 
 
-        // Create GenerativeModel
         GenerativeModel generativeModel = new GenerativeModel("gemini-2.0-flash",
-                BuildConfig.API_KEY);
-
+                BuildConfig.GEMINI_API_KEY);
 
         submitPromptButton.setOnClickListener(v -> {
-            String prompt = promptEditText.getText().toString();
+            String prompt = promptEditText.getText().toString().trim();
             promptEditText.setError(null);
+
             if (prompt.isEmpty()) {
                 promptEditText.setError(getString(R.string.field_cannot_be_empty));
                 String string = getString(R.string.aistring);
                 responseTextView.setText(TextFormatter.getBoldSpannableText(string));
                 return;
             }
+
+            userMessageText.setText(prompt);
+            promptEditText.setText("");
+
             progressBar.setVisibility(VISIBLE);
             generativeModel.generateContent(prompt, new Continuation<>() {
                 @NonNull
@@ -77,11 +83,9 @@ public class MainActivity extends AppCompatActivity {
                     runOnUiThread(() -> {
                         progressBar.setVisibility(GONE);
                         responseTextView.setText(TextFormatter.getBoldSpannableText(responseString));
-
                     });
                 }
             });
         });
-
     }
 }
